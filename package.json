@@ -1,6 +1,6 @@
 {
   "name": "letter-generator",
-  "version": "1.0.1",
+  "version": "2.2.2",
   "description": "",
   "main": "index.js",
   "scripts": {
