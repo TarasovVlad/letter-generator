@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Генератор деловых писем</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header class="header">
+    <h1>Генератор деловых писем</h1>
+  </header>
+
+  <main class="container">
+
+    <section class="templates-section">
+      <h2>Выберите тип письма</h2>
+      <div id="template-tabs" class="tabs">
+      </div>
+    </section>
+
+    <div class="workspace">
+
+      <section class="form-section">
+        <h2>Реквизиты</h2>
+
+        <div class="field-group">
+          <label for="input-name">ФИО *</label>
+          <input type="text" id="input-name" placeholder="Иванов Иван Иванович">
+        </div>
+
+        <div class="field-group">
+          <label for="input-pos">Должность *</label>
+          <input type="text" id="input-pos" placeholder="Менеджер">
+        </div>
+
+        <div class="field-group">
+          <label for="input-org">Организация *</label>
+          <input type="text" id="input-org" placeholder='ООО "Пример"'>
+        </div>
+
+        <div class="field-group">
+          <label for="input-email">Email</label>
+          <input type="text" id="input-email" placeholder="ivanov@example.com">
+        </div>
+
+        <div class="field-group">
+          <label for="input-phone">Телефон</label>
+          <input type="text" id="input-phone" placeholder="+7 (999) 000-00-00">
+        </div>
+
+        <div id="extra-fields"></div>
+
+        <button id="btn-save" class="btn btn-secondary">Сохранить реквизиты</button>
+      </section>
+
+      <section class="preview-section">
+        <h2>Предпросмотр</h2>
+
+        <div id="preview" class="preview-box">
+          Выберите тип письма чтобы увидеть результат
+        </div>
+
+        <div id="style-warnings" class="warnings"></div>
+
+        <button id="btn-export" class="btn btn-primary">Скачать DOCX</button>
+      </section>
+
+    </div>
+
+  </main>
+
+  <div id="notification" class="notification" style="display: none;"></div>
+
+  <script src="https://unpkg.com/docx@8.5.0/build/index.js"></script>
+
+  <script src="js/data.js"></script>
+  <script src="js/templates.js"></script>
+  <script src="js/validation.js"></script>
+  <script src="js/export.js"></script>
+  <script src="js/app.js"></script>
+
+</body>
+</html>
