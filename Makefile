@@ -2,7 +2,7 @@ install:
 	npm ci
 
 start:
-	open index.html
+	npx serve .
 
 lint:
 	npx eslint .
@@ -11,4 +11,4 @@ lint-fix:
 	npx eslint . --fix
 
 publish:
-	npm publish --dry-run
+	npm publish --access public
