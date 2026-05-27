@@ -4,10 +4,11 @@
   "description": "",
   "main": "index.js",
   "scripts": {
+    "start": "npx serve .",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],
-  "author": "",
+  "author": "Tarasov Vladislav",
   "license": "ISC",
   "type": "commonjs",
   "dependencies": {
