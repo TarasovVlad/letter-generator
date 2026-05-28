@@ -1,45 +1,72 @@
+// app.js - точка входа, связывает все модули вместе
+// Отвечает за: инициализацию, обработчики событий, состояние
+
 import { profile, letterExample } from './data.js';
-import { findTemplate, makeLetter, renderExtraFields } from './templates.js';
-import { checkKeyPhrases, highlightProblems } from './validation.js'
+import { findTemplate, makeLetter } from './templates.js';
+import { checkKeyPhrases, highlightProblems, validateForm } from './validation.js'
 import { downloadDocx } from './export.js'
 
+// Глобальное состояние приложения
+// Все модули работают через этот объект - не через глобальные переменные
 const state = {
-    currentTemplate: null,
-    profile: profile
+    currentTemplate: null, // текущий выбранный шаблон (объект или null)
+    profile: profile // данные пользователя (ссылка на объект из data.js)
 }
 
-const updatePreview = () => {
-    if (state.currentTemplate === null) return
 
-    const extraContainer = document.getElementById('extra-fields')
-    const isExtraVisible = extraContainer.classList.contains('extra-fields-visible')
+// Сохраняет данные профиля в localStorage
+// Вызывается при нажатии кнопки «Сохранить реквизиты»
+// JSON.stringify превращает объект в строку для хранения
+const saveUserData = () => {
+    localStorage.setItem('profile', JSON.stringify(state.profile))
+}
 
-    const fields = {}
-    if (isExtraVisible) {
-        extraContainer.querySelectorAll('input').forEach(inp => {
-            fields[inp.dataset.fieldId] = inp.value
-        })
+// Загружает данные профиля из localStorage при старте страницы
+// Если данных нет - используется профиль по умолчанию из data.js
+// JSON.parse превращает строку обратно в объект
+const loadUserData = () => {
+    const saved = localStorage.getItem('profile')
+    if (saved) {
+        const data = JSON.parse(saved)
+        state.profile.fullName = data.fullName
+        state.profile.position = data.position
+        state.profile.organization = data.organization
+        state.profile.email = data.email
+        state.profile.phone = data.phone
     }
+}
 
-    const preview = document.getElementById('preview')
-    const text = makeLetter(state.currentTemplate, state.profile, fields)
-    preview.innerHTML = highlightProblems(text)
-
-    document.getElementById('preview').addEventListener('input', () => {
-    const text = document.getElementById('preview').textContent
+// Проверяет текст письма на ключевые фразы и показывает предупреждения
+// Вызывается при каждом обновлении предпросмотра
+const showWarnings = (text) => {
     const warnings = checkKeyPhrases(text, state.currentTemplate?.id)
     const warningsContainer = document.getElementById('style-warnings')
     warningsContainer.innerHTML = ''
-
     for (let i = 0; i < warnings.length; i++) {
         const p = document.createElement('p')
         p.className = 'warning'
         p.textContent = '⚠ ' + warnings[i]
         warningsContainer.appendChild(p)
     }
-})
 }
 
+// Обновляет предпросмотр письма
+// Собирает текст из текущего шаблона и профиля
+// Подсвечивает проблемные места и показывает предупреждения
+const updatePreview = () => {
+    if (state.currentTemplate === null) return
+
+    const preview = document.getElementById('preview')
+    const text = makeLetter(state.currentTemplate, state.profile, {})
+
+    // innerHTML позволяет вставить HTML с тегами подсветки
+    preview.innerHTML = highlightProblems(text)
+    showWarnings(text)
+}
+
+// Показывает подсказки по стилю для выбранного шаблона
+// Берёт hints из объекта шаблона и рендерит их в блок hints-box
+// Если подсказок нет - скрывает блок
 const showHints = (template) => {
     const hintsBox = document.getElementById('hints-box')
     const hintsList = document.getElementById('hints-list')
@@ -60,27 +87,65 @@ const showHints = (template) => {
     hintsBox.style.display = 'block'
 }
 
+// Показывает всплывающее уведомление внизу экрана.
+// Принимает:
+//   message - текст уведомления
+//   type    - 'success' (зелёный) или 'error' (красный)
+// Уведомление исчезает автоматически через 3 секунды
 const showNotification = (message, type) => {
     const el = document.getElementById('notification')
     el.textContent = message
     el.className = 'notification ' + type
     el.style.display = 'block'
 
+    // setTimeout - встроенная функция браузера, выполняет код через N мс
     setTimeout(() => {
         el.style.display = 'none'
     }, 3000)
 }
 
+// Переключает тёмную/светлую тему.
+// Сохраняет выбор в localStorage чтобы тема сохранялась после перезагрузки.
+const toggleTheme = () => {
+    document.body.classList.toggle('dark')
+    const isDark = document.body.classList.contains('dark')
+    localStorage.setItem('theme', isDark ? 'dark' : 'light')
+    document.getElementById('theme-toggle').textContent = isDark ? '☀️' : '🌙'
+}
+
+// Инициализация - запускается когда HTML страница полностью загружена
 document.addEventListener('DOMContentLoaded', () => {
 
-    const tabsContainer = document.getElementById('template-tabs')
-    const toggle = document.getElementById('extra-toggle')
-    const extraContainer = document.getElementById('extra-fields')
-    const arrow = toggle.querySelector('.arrow')
+    // Загружаем сохранённую тему
+    const savedTheme = localStorage.getItem('theme')
+    if (savedTheme === 'dark') {
+    document.body.classList.add('dark')
+    document.getElementById('theme-toggle').textContent = '☀️'
+    }
 
+    // Вешаем обработчик на кнопку
+    document.getElementById('theme-toggle').addEventListener('click', toggleTheme)
+    // Загружаем сохранённые реквизиты и заполняем форму
+    loadUserData()
+    document.getElementById('input-name').value = state.profile.fullName
+    document.getElementById('input-pos').value = state.profile.position
+    document.getElementById('input-org').value = state.profile.organization
+    document.getElementById('input-email').value = state.profile.email
+    document.getElementById('input-phone').value = state.profile.phone
+
+    const tabsContainer = document.getElementById('template-tabs')
+
+    // Кнопка «Скачать DOCX» - генерирует и скачивает файл
     document.getElementById('btn-export').addEventListener('click', async () => {
         if (state.currentTemplate === null) {
             showNotification('Сначала выберите тип письма', 'error')
+            return
+        }
+
+        // Проверяем форму перед экспортом
+        const errors = validateForm(state.profile)
+            if (errors.length > 0) {
+            showNotification(errors[0], 'error')
             return
         }
         const preview = document.getElementById('preview')
@@ -89,22 +154,24 @@ document.addEventListener('DOMContentLoaded', () => {
         showNotification('Файл скачан!', 'success')
     })
 
-    toggle.addEventListener('click', () => {
-        const isOpen = extraContainer.classList.contains('extra-fields-visible')
-
-        if (isOpen) {
-            extraContainer.classList.remove('extra-fields-visible')
-            extraContainer.classList.add('extra-fields-hidden')
-            arrow.classList.remove('open')
-        } else {
-            extraContainer.classList.remove('extra-fields-hidden')
-            extraContainer.classList.add('extra-fields-visible')
-            arrow.classList.add('open')
+    // Кнопка «Сохранить реквизиты» - записывает данные в localStorage
+    document.getElementById('btn-save').addEventListener('click', () => {
+        const errors = validateForm(state.profile)
+        if (errors.length > 0) {
+            showNotification(errors[0], 'error')
+            return
         }
-        
-        updatePreview()
+        saveUserData()
+        showNotification('Реквизиты сохранены!', 'success')
     })
 
+    // При редактировании текста прямо в предпросмотре - обновляем предупреждения
+    document.getElementById('preview').addEventListener('input', () => {
+        const text = document.getElementById('preview').textContent
+        showWarnings(text)
+    })
+
+    // Обновляем state.profile и предпросмотр при вводе в поля реквизитов
     document.getElementById('input-name').addEventListener('input', (e) => {
         state.profile.fullName = e.target.value
         updatePreview()
@@ -125,36 +192,24 @@ document.addEventListener('DOMContentLoaded', () => {
         state.profile.phone = e.target.value
         updatePreview()
     })
-    document.getElementById('btn-save').addEventListener('click', () => {
-    showNotification('Реквизиты сохранены!', 'success')
-    })
 
+    // Создаём кнопку для каждого шаблона из массива letterExample
     for (let i = 0; i < letterExample.length; i++) {
         const template = letterExample[i]
         const btn = document.createElement('button')
         btn.textContent = template.name
         btn.addEventListener('click', () => {
+            // Убираем активный класс со всех кнопок
             const allBtns = tabsContainer.querySelectorAll('button')
             for (let j = 0; j < allBtns.length; j++) {
                 allBtns[j].classList.remove('active')
             }
+            // Ставим активный класс на нажатую кнопку
             btn.classList.add('active')
 
+            // Обновляем состояние и перерисовываем предпросмотр
             state.currentTemplate = findTemplate(template.id)
-
-            toggle.style.display = 'flex'
-            extraContainer.classList.remove('extra-fields-visible')
-            extraContainer.classList.add('extra-fields-hidden')
-            arrow.classList.remove('open')
-
-            renderExtraFields(extraContainer, state.currentTemplate)
-
-            extraContainer.querySelectorAll('input').forEach(input => {
-                input.addEventListener('input', () => updatePreview())
-            })
-
             updatePreview()
-
             showHints(state.currentTemplate)
         })
         tabsContainer.appendChild(btn)

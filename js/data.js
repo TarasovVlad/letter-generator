@@ -1,3 +1,7 @@
+// data.js - хранилище данных приложения
+// Содержит: профиль пользователя и массив шаблонов писем
+
+// Профиль пользователя по умолчанию
 const profile = {
     fullName: 'Иванов Иван Иванович',
     position: 'Менеджер',
@@ -6,30 +10,27 @@ const profile = {
     phone: '+7 (999) 000-00-00',
 };
 
+// Массив шаблонов писем.
+// Каждый шаблон - объект с полями:
+//   id       - уникальный идентификатор (используется в коде)
+//   name     - название для отображения на кнопке
+//   hints    - массив подсказок по стилю письма
+//   generate - функция которая принимает profile и возвращает текст письма
 const letterExample = [
     {
+    // Шаблон 1: Заявление на отгул
     id: 'dayoff',
     name: 'Отгул',
-    extraFields: [
-        { id: 'managerPosition', label: 'Должность руководителя', required: true },
-        { id: 'managerOrg',      label: 'Организация руководителя', required: true },
-        { id: 'managerName',     label: 'ФИО руководителя', required: true },
-        { id: 'dates',           label: 'Дата(ы) отгула', required: true },
-        { id: 'reason',          label: 'Основание (отработанного времени / без сохранения з/п)', required: true },
-        { id: 'basis',           label: 'Обоснование (работа в выходной ДД.ММ.ГГГГ)', required: false },
-        { id: 'date',            label: 'Дата заявления', required: true },
-    ],
     hints: [
     'Укажите точную дату отгула в формате ДД.ММ.ГГГГ',
     'Основание: "в счёт ранее отработанного времени" или "без сохранения з/п"',
     'Обязательно укажите должность и ФИО руководителя',
     'Дата заявления должна быть не позже даты отгула'
     ],
-    generate(profile, fields) {
-  return `
-${fields.managerPosition || ''}
-${fields.managerOrg || ''}
-${fields.managerName || ''}
+    // Генерирует текст заявления на отгул
+    generate(profile) {
+  return `Руководителю
+${profile.organization}
 
 от ${profile.fullName}
 должность: ${profile.position}
@@ -37,58 +38,47 @@ ${fields.managerName || ''}
 
 ЗАЯВЛЕНИЕ
 
-Прошу предоставить мне отгул ${fields.dates || ''}
-в счёт ${fields.reason || ''}.
+Прошу предоставить мне отгул _____________
+в счёт ранее отработанного времени.
 
-Основание: ${fields.basis || ''}.
-
-${fields.date || ''}          ___________/ ${profile.fullName}
-  `.trim();
+С уважением,
+_____________ / ${profile.fullName}`.trim()
 }
 },
 
-{
+{   
+    // Шаблон 2: Коммерческое предложение
     id: 'commercial',
     name: 'Коммерческое предложение',
-    extraFields: [
-        { id: 'companyAddress', label: 'Адрес компании',          required: true },
-        { id: 'docNumber',      label: 'Номер документа',         required: true },
-        { id: 'docDate',        label: 'Дата (ДД.ММ.ГГГГ)',       required: true },
-        { id: 'recipient',      label: 'ФИО/должность получателя', required: true },
-        { id: 'description',    label: 'Описание товара/услуги',   required: true },
-        { id: 'item1',          label: 'Позиция 1 (название / цена / срок)', required: true },
-        { id: 'item2',          label: 'Позиция 2 (название / цена / срок)', required: false },
-        { id: 'item3',          label: 'Позиция 3 (название / цена / срок)', required: false },
-        { id: 'conditions',     label: 'Условия (сроки, оплата, гарантии)', required: true },
-        { id: 'validUntil',     label: 'Предложение действительно до', required: true },
-    ],
     hints: [
     'Обращайтесь к получателю по имени и отчеству',
-    'Опишите товар/услугу конкретно — цена, сроки, условия',
+    'Опишите товар/услугу конкретно - цена, сроки, условия',
     'Укажите срок действия предложения',
     'Избегайте канцеляризмов: "осуществить", "произвести"'
     ],
-    generate(profile, fields) {
+    // Генерирует текст коммерческого предложения
+    generate(profile) {
         return `${profile.organization}
-${fields.companyAddress || ''}
 ${profile.email} · ${profile.phone}
 
 КОММЕРЧЕСКОЕ ПРЕДЛОЖЕНИЕ
-№ ${fields.docNumber || ''} от ${fields.docDate || ''}
+№ ___ от _____________
 
-Уважаемый(-ая) ${fields.recipient || ''},
+Уважаемый(-ая) _______________,
 
-Компания ${profile.organization} рада предложить вам ${fields.description || ''}.
+Компания ${profile.organization} рада предложить вам _______________.
 
 Что мы предлагаем:
-— ${fields.item1 || ''}${(fields.item2 || '') ? '\n— ' + (fields.item2 || '') : ''}${(fields.item3 || '') ? '\n— ' + (fields.item3 || '') : ''}
+- _______________
+- _______________
 
-Условия: ${fields.conditions || ''}.
+Условия: _______________.
 
-Предложение действительно до ${fields.validUntil || ''}.
+Предложение действительно до _______________.
 
 Будем рады ответить на ваши вопросы и обсудить детали.
 
+С уважением,
 
 МЕНЕДЖЕР
 ${profile.fullName}
@@ -100,48 +90,41 @@ _____________________`
 },
 
 {
+    // Шаблон 3: Сопроводительное письмо к резюме
     id: 'cover',
     name: 'Сопроводительное письмо',
-    extraFields: [
-        { id: 'vacancy',      label: 'Название вакансии',               required: true },
-        { id: 'recipient',    label: 'ФИО или «команда HR»',            required: true },
-        { id: 'experience',   label: 'Лет опыта и сфера',               required: true },
-        { id: 'skill1',       label: 'Навык / достижение 1',            required: true },
-        { id: 'skill2',       label: 'Навык / достижение 2',            required: false },
-        { id: 'skill3',       label: 'Навык / достижение 3',            required: false },
-        { id: 'motivation',   label: 'Что привлекает в компании',       required: true },
-        { id: 'date',         label: 'Дата (ДД.ММ.ГГГГ)',               required: true },
-    ],
     hints: [
     'Укажите конкретную вакансию на которую претендуете',
     'Навыки должны соответствовать требованиям вакансии',
-    'Не пересказывайте резюме — покажите мотивацию',
+    'Не пересказывайте резюме - покажите мотивацию',
     'Письмо не должно быть длиннее одной страницы'
     ],
-    generate(profile, fields) {
+    // Генерирует текст сопроводительного письма
+    generate(profile) {
         return `${profile.fullName}
 ${profile.position}
 ${profile.email} · ${profile.phone}
 
 СОПРОВОДИТЕЛЬНОЕ ПИСЬМО
-к резюме на позицию ${fields.vacancy || ''}
+к резюме на позицию _______________
 
-Уважаемый(-ая) ${fields.recipient || ''},
+Уважаемый(-ая) _______________,
 
-Меня заинтересовала вакансия ${fields.vacancy || ''} в компании ${profile.organization}. Имею ${fields.experience || ''}.
+Меня заинтересовала вакансия _______________ в компании ${profile.organization}.
 
 Ключевые компетенции, которые я готов(а) предложить:
-— ${fields.skill1 || ''}${fields.skill2 ? '\n— ' + fields.skill2 : ''}${fields.skill3 ? '\n— ' + fields.skill3 : ''}
+- _______________
+- _______________
+- _______________
 
-Меня привлекает ${fields.motivation || ''}.
+Меня привлекает _______________.
 
 Готов(а) рассмотреть детали в удобное для вас время. Резюме приложено.
 
 С уважением,
 ${profile.fullName}
 
-ДАТА
-${fields.date || ''}
+ДАТА _______________
 
 ПОДПИСЬ
 _____________________`
@@ -149,55 +132,43 @@ _____________________`
 },
 
 {
+    // Шаблон 4: Претензия
     id: 'complaint',
     name: 'Претензия',
-    extraFields: [
-        { id: 'recipientOrg',   label: 'Наименование организации-получателя', required: true },
-        { id: 'recipientAddr',  label: 'Адрес организации-получателя',        required: true },
-        { id: 'claimantAddr',   label: 'Ваш адрес',                           required: true },
-        { id: 'docNumber',      label: 'Номер претензии',                     required: true },
-        { id: 'docDate',        label: 'Дата претензии (ДД.ММ.ГГГГ)',         required: true },
-        { id: 'contractDate',   label: 'Дата договора/покупки (ДД.ММ.ГГГГ)', required: true },
-        { id: 'contractNumber', label: 'Номер договора',                      required: true },
-        { id: 'violation1',     label: 'Нарушение 1',                         required: true },
-        { id: 'violation2',     label: 'Нарушение 2',                         required: false },
-        { id: 'evidence',       label: 'Подтверждающие документы',            required: true },
-        { id: 'lawBase',        label: 'Правовое основание (ст. ГК РФ и т.д.)', required: true },
-        { id: 'deadline',       label: 'Срок исполнения (ДД.ММ.ГГГГ)',        required: true },
-        { id: 'demand',         label: 'Требование',                          required: true },
-        { id: 'attachments',    label: 'Приложения (список документов)',       required: false },
-    ],
     hints: [
-    'Укажите номер и дату договора — это обязательно',
+    'Укажите номер и дату договора - это обязательно',
     'Описывайте нарушения конкретно: дата, сумма, факт',
     'Приложите подтверждающие документы: чек, акт, фото',
-    'Укажите разумный срок для ответа — обычно 10-30 дней'
+    'Укажите разумный срок для ответа - обычно 10-30 дней'
     ],
-    generate(profile, fields) {
-        return `${fields.recipientOrg || ''}
-${fields.recipientAddr || ''}
+    // Генерирует текст претензии
+    generate(profile) {
+        return `_______________
+_______________
 
 от ${profile.fullName}
-адрес: ${fields.claimantAddr || ''}
 тел.: ${profile.phone} · ${profile.email}
 
 ПРЕТЕНЗИЯ
-№ ${fields.docNumber || ''} от ${fields.docDate || ''}
+№ ___ от _______________
 
-${fields.contractDate || ''} между мной и ${fields.recipientOrg || ''} был заключён договор № ${fields.contractNumber || ''}.
+_______________ между мной и _______________ был заключён договор № ___.
 
 В ходе исполнения были выявлены следующие нарушения:
-— ${fields.violation1 || ''}${fields.violation2 ? '\n— ' + fields.violation2 : ''}
+- _______________
+- _______________
 
-Данные нарушения подтверждаются: ${fields.evidence}.
+Данные нарушения подтверждаются: _______________.
 
-На основании ${fields.lawBase || ''} прошу в срок до ${fields.deadline || ''}:
-— ${fields.demand || ''}
+На основании _______________ прошу в срок до _______________:
+- _______________
 
 При неурегулировании претензии в указанный срок оставляю за собой право обратиться в суд и/или контролирующие органы.
 
 ПРИЛОЖЕНИЯ
-${fields.attachments || '—'}
+_______________
+
+С уважением,
 
 ПОДПИСЬ / ПЕЧАТЬ
 _____________________ / ${profile.fullName}`
@@ -205,54 +176,43 @@ _____________________ / ${profile.fullName}`
 },
 
 {
+    // Шаблон 5: Приглашение на мероприятие
     id: 'invitation',
     name: 'Приглашение',
-    extraFields: [
-        { id: 'companyAddress', label: 'Адрес организации',              required: true },
-        { id: 'recipient',      label: 'ФИО / должность приглашённого',  required: true },
-        { id: 'eventName',      label: 'Название мероприятия',           required: true },
-        { id: 'eventType',      label: 'Тип (конференция / встреча...)', required: true },
-        { id: 'eventDate',      label: 'Дата и время (ДД.ММ.ГГГГ ЧЧ:ММ)', required: true },
-        { id: 'eventPlace',     label: 'Место / ссылка на площадку',     required: true },
-        { id: 'eventFormat',    label: 'Формат (очный / онлайн...)',     required: true },
-        { id: 'program',        label: 'Программа мероприятия',          required: true },
-        { id: 'confirmDate',    label: 'Подтвердить участие до',         required: true },
-        { id: 'contactName',    label: 'ФИО ответственного за контакт', required: true },
-        { id: 'contactPos',     label: 'Должность ответственного',       required: true },
-        { id: 'contactPhone',   label: 'Телефон / email ответственного', required: true },
-    ],
     hints: [
     'Укажите точную дату, время и место мероприятия',
     'Попросите подтвердить участие заранее',
     'Укажите формат: очный, онлайн или гибридный',
     'Добавьте контакт ответственного для вопросов'
     ],
-    generate(profile, fields) {
+    // Генерирует текст приглашения на мероприятие
+    generate(profile) {
         return `${profile.organization}
-${fields.companyAddress || ''}
 ${profile.email} · ${profile.phone}
 
 ПРИГЛАШЕНИЕ
-на ${fields.eventName || ''}
+на _______________
 
-Уважаемый(-ая) ${fields.recipient || ''},
+Уважаемый(-ая) _______________,
 
-${profile.organization} приглашает вас принять участие в ${fields.eventName || ''}: ${fields.eventType || ''}.
+${profile.organization} приглашает вас принять участие в _______________.
 
-Дата и время: ${fields.eventDate || ''}
-Место проведения: ${fields.eventPlace || ''}
-Формат: ${fields.eventFormat || ''}
+Дата и время: _______________
+Место проведения: _______________
+Формат: _______________
 
-Программа мероприятия включает: ${fields.program || ''}.
+Программа мероприятия включает: _______________.
 
-Просим подтвердить участие до ${fields.confirmDate || ''} по контактам ниже.
+Просим подтвердить участие до _______________.
 
 Будем рады видеть вас!
 
+С уважением,
+
 КОНТАКТ ДЛЯ ПОДТВЕРЖДЕНИЯ
-${fields.contactName || ''}
-${fields.contactPos || ''}
-${fields.contactPhone || ''}
+${profile.fullName}
+${profile.position}
+${profile.phone} · ${profile.email}
 
 ПОДПИСЬ / ПЕЧАТЬ
 _____________________`
@@ -260,4 +220,5 @@ _____________________`
 }
 ]
 
+// Экспортируем для использования в других файлах
 export { profile, letterExample };

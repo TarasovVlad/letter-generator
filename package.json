@@ -1,7 +1,7 @@
 {
   "name": "@aldnoa/letter-generator",
   "version": "2.2.4",
-  "description": "",
+  "description": "Генератор деловых писем - веб-приложение для создания шаблонных деловых писем",
   "main": "index.js",
   "scripts": {
     "start": "npx serve .",

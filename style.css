@@ -11,6 +11,9 @@ body {
 }
 
 .header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
   background: #2c5f8a;
   color: white;
   padding: 16px 24px;
@@ -271,6 +274,99 @@ mark.highlight-bureaucratic {
 .highlight-long {
     background: #fee2e2;
     border-radius: 3px;
+}
+
+/* Кнопка переключения темы */
+.theme-btn {
+    background: none;
+    border: 2px solid rgba(255,255,255,0.5);
+    border-radius: 20px;
+    padding: 4px 12px;
+    cursor: pointer;
+    font-size: 16px;
+    color: white;
+    transition: all 0.2s;
+}
+
+.theme-btn:hover {
+    background: rgba(255,255,255,0.1);
+}
+
+/* Тёмная тема — применяется когда у <body> есть класс dark */
+body.dark {
+    background: #1a1a2e;
+    color: #e0e0e0;
+}
+
+body.dark .header {
+    background: #16213e;
+}
+
+body.dark .templates-section,
+body.dark .form-section,
+body.dark .preview-section {
+    background: #16213e;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.3);
+}
+
+body.dark .templates-section h2,
+body.dark .form-section h2,
+body.dark .preview-section h2 {
+    color: #a0aec0;
+}
+
+body.dark .tabs button {
+    background: #1a1a2e;
+    border-color: #4a5568;
+    color: #a0aec0;
+}
+
+body.dark .tabs button:hover {
+    border-color: #63b3ed;
+    color: #63b3ed;
+}
+
+body.dark .tabs button.active {
+    background: #2b6cb0;
+    border-color: #2b6cb0;
+    color: white;
+}
+
+body.dark .field-group input,
+body.dark .field-group textarea {
+    background: #1a1a2e;
+    border-color: #4a5568;
+    color: #e0e0e0;
+}
+
+body.dark .field-group label {
+    color: #a0aec0;
+}
+
+body.dark .preview-box {
+    background: #1a1a2e;
+    border-color: #4a5568;
+    color: #e0e0e0;
+}
+
+body.dark .btn-secondary {
+    background: #2d3748;
+    border-color: #4a5568;
+    color: #a0aec0;
+}
+
+body.dark .hints-box {
+    background: #1e3a5f;
+    border-color: #2b6cb0;
+}
+
+body.dark .hints-title {
+    color: #63b3ed;
+}
+
+body.dark .hint-item {
+    color: #90cdf4;
+    border-color: #2b6cb0;
 }
 
 @media (max-width: 768px) {

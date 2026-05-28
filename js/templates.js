@@ -1,5 +1,10 @@
+// templates.js - логика поиска шаблона и сборки письма
+
 import { letterExample } from './data.js';
 
+// Ищет шаблон в массиве letterExample по его уникальному id
+// Перебирает массив циклом и возвращает первый совпавший элемент
+// Если шаблон не найден - возвращает null
 const findTemplate = (templateID) => {
     for (let i = 0; i < letterExample.length; i++) {
         if (letterExample[i].id === templateID) {
@@ -9,35 +14,18 @@ const findTemplate = (templateID) => {
     return null
 }
 
-const makeLetter = (template, user, fields) => {
+// Собирает итоговый текст письма.
+// Принимает:
+//   template - объект шаблона из letterExample
+//   user     - объект профиля пользователя (profile)
+// Вызывает функцию generate из шаблона и возвращает готовый текст
+// Если шаблон не выбран (null) возвращает пустую строку
+const makeLetter = (template, user) => {
     if (template === null) {
         return ''
     }
-    return template.generate(user, fields)
+    return template.generate(user)
 }
 
-const renderExtraFields = (container, template) => {
-    container.innerHTML = ''
-    if (template === null) return
 
-    for (let i = 0; i < template.extraFields.length; i++) {
-        const field = template.extraFields[i]
-
-        const wrapper = document.createElement('div')
-        wrapper.className = 'field-group'
-
-        const label = document.createElement('label')
-        label.textContent = field.label + (field.required ? ' *' : '')
-
-        const input = document.createElement('input')
-        input.type = 'text'
-        input.dataset.fieldId = field.id
-        input.placeholder = field.required ? 'Обязательное поле' : 'Необязательно'
-
-        wrapper.appendChild(label)
-        wrapper.appendChild(input)
-        container.appendChild(wrapper)
-    }
-}
-
-export { findTemplate, makeLetter, renderExtraFields };
+export { findTemplate, makeLetter };
