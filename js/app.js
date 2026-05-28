@@ -165,10 +165,54 @@ document.addEventListener('DOMContentLoaded', () => {
         showNotification('Реквизиты сохранены!', 'success')
     })
 
-    // При редактировании текста прямо в предпросмотре - обновляем предупреждения
     document.getElementById('preview').addEventListener('input', () => {
-        const text = document.getElementById('preview').textContent
+        const preview = document.getElementById('preview')
+        const text = preview.textContent
+
         showWarnings(text)
+
+        // Считаем позицию курсора в символах от начала текста
+        const selection = window.getSelection()
+        let cursorPos = 0
+        if (selection.rangeCount > 0) {
+            const range = selection.getRangeAt(0)
+            const preRange = document.createRange()
+            preRange.selectNodeContents(preview)
+            preRange.setEnd(range.startContainer, range.startOffset)
+            cursorPos = preRange.toString().length
+        }
+
+        // Меняем HTML
+        preview.innerHTML = highlightProblems(text)
+
+        // Восстанавливаем курсор по позиции в тексте
+        const newRange = document.createRange()
+        const newSelection = window.getSelection()
+        let charCount = 0
+        let found = false
+
+        const walkNodes = (node) => {
+            if (found) return
+            if (node.nodeType === Node.TEXT_NODE) {
+                const nextCount = charCount + node.length
+                if (nextCount >= cursorPos) {
+                    newRange.setStart(node, cursorPos - charCount)
+                    newRange.collapse(true)
+                    found = true
+                }
+                charCount = nextCount
+            } else {
+                for (const child of node.childNodes) {
+                    walkNodes(child)
+                }
+            }
+        }
+
+        walkNodes(preview)
+        if (found) {
+            newSelection.removeAllRanges()
+            newSelection.addRange(newRange)
+        }
     })
 
     // Обновляем state.profile и предпросмотр при вводе в поля реквизитов
